@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Us, Since</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,500;0,700&family=Inter:wght@400;500;600&display=swap');
 
@@ -582,6 +584,303 @@
   .status { text-align: center; font-size: 11px; color: var(--muted); margin-top: 34px; }
 
   .hidden { display: none !important; }
+
+  /* ---------- Crop modal ---------- */
+
+  .crop-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(74, 53, 64, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+  }
+
+  .crop-modal {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 22px;
+    width: 100%;
+    max-width: 340px;
+    box-shadow: 0 24px 60px -20px rgba(0,0,0,0.4);
+    text-align: center;
+  }
+
+  .crop-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 19px;
+    color: var(--rose-deep);
+    margin-bottom: 14px;
+  }
+
+  .crop-hint {
+    font-size: 11.5px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .crop-viewport {
+    position: relative;
+    margin: 0 auto 16px;
+    overflow: hidden;
+    border-radius: 14px;
+    background: #ECD9D5;
+    touch-action: none;
+  }
+
+  .crop-viewport.circle { border-radius: 50%; }
+
+  .crop-viewport img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-drag: none;
+    max-width: none;
+  }
+
+  .crop-zoom-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .crop-zoom-row span { color: var(--rose); font-size: 14px; }
+
+  input#cropZoom {
+    flex: 1;
+    accent-color: var(--rose-deep);
+  }
+
+  .crop-actions { display: flex; gap: 10px; }
+
+  .crop-cancel, .crop-save {
+    flex: 1;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .crop-cancel { background: transparent; border: 1px solid var(--line); color: var(--muted); }
+  .crop-save { background: var(--rose-deep); border: none; color: #FFF8F5; font-weight: 600; }
+  .crop-save:hover { background: var(--rose); }
+
+  /* ---------- Share card ---------- */
+
+  .share-btn {
+    background: var(--card);
+    border: 1px solid var(--gold);
+    color: var(--rose-deep);
+    border-radius: 16px;
+    padding: 5px 13px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .share-btn:hover { background: #FCF3EA; }
+
+  .topbar-actions { display: flex; gap: 8px; }
+
+  .share-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(74, 53, 64, 0.6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 24px 16px;
+    overflow-y: auto;
+  }
+
+  .share-close {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.85);
+    color: var(--plum);
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  .share-card {
+    width: 320px;
+    padding: 40px 26px 32px;
+    border-radius: 26px;
+    background: linear-gradient(160deg, #FDF3EF 0%, #F8E1DC 55%, #F3D9CF 100%);
+    box-shadow: 0 30px 70px -25px rgba(0,0,0,0.35);
+    text-align: center;
+    position: relative;
+  }
+
+  .share-flourish {
+    color: var(--gold);
+    font-size: 20px;
+    margin-bottom: 18px;
+  }
+
+  .share-avatars {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .share-avatar {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background-color: #fff;
+    background-size: cover;
+    background-position: center;
+    border: 2px solid #fff;
+    box-shadow: 0 10px 24px -10px rgba(156,66,76,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--rose);
+    font-size: 22px;
+  }
+
+  .share-heart { color: var(--rose); font-size: 22px; }
+
+  .share-names {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: 30px;
+    color: var(--rose-deep);
+    margin-bottom: 6px;
+  }
+
+  .share-since {
+    font-size: 12.5px;
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 26px;
+  }
+
+  .share-num-row {
+    display: flex;
+    justify-content: center;
+    gap: 22px;
+    margin-bottom: 22px;
+  }
+
+  .share-num-block .share-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 700;
+    font-size: 42px;
+    color: var(--plum);
+    line-height: 1;
+  }
+
+  .share-num-block .share-lbl {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 4px;
+    letter-spacing: 0.03em;
+  }
+
+  .share-photos {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .share-photos img {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 2px solid #fff;
+    box-shadow: 0 8px 18px -10px rgba(0,0,0,0.3);
+  }
+
+  .share-tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--rose-deep);
+    margin-bottom: 22px;
+  }
+
+  .share-brand {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .share-download {
+    margin-top: 22px;
+    background: var(--rose-deep);
+    border: none;
+    color: #FFF8F5;
+    border-radius: 24px;
+    padding: 12px 26px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .share-download:hover { background: var(--rose); }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width: 480px) {
+    body { padding: 28px 14px 70px; }
+
+    input[type="date"], input[type="time"], input[type="text"], input[type="password"] {
+      font-size: 16px; /* prevents iOS auto-zoom on focus */
+    }
+
+    .login-wrap { margin-top: 24px; }
+    .login-card { padding: 26px 18px 22px; }
+
+    .names-card { padding: 20px 14px 18px; }
+    .couple-row { gap: 10px; }
+    .avatar { width: 68px; height: 68px; }
+    .couple-col input { font-size: 28px; width: 100px; padding: 4px 2px 6px; }
+    .couple-row .heart { font-size: 20px; margin-top: 32px; }
+
+    .hero { margin: 30px 0 34px; }
+    .counter { gap: 10px; padding: 20px 10px 16px; }
+    .unit { min-width: 46px; }
+    .unit .num { font-size: 30px; }
+    .unit .lbl { font-size: 9.5px; }
+
+    .setup-row { gap: 6px; }
+    .setup-row input { flex: 1; min-width: 0; }
+
+    .timeline-head h2 { font-size: 21px; }
+    .event .event-photo { max-width: 100%; }
+
+    .new-event { gap: 10px; }
+    .new-event input[type="text"] { width: 100%; }
+    .photo-picker { flex-wrap: wrap; }
+
+    .app-topbar { flex-wrap: wrap; gap: 8px; }
+
+    .crop-modal { padding: 18px; }
+    .share-card { width: 100%; max-width: 300px; padding: 32px 18px 26px; }
+    .share-num-row { gap: 14px; }
+    .share-num-block .share-num { font-size: 34px; }
+  }
 </style>
 </head>
 <body>
@@ -620,7 +919,10 @@
 
     <div class="app-topbar">
       <div class="account-chip">Signed in as <b id="accountLabel"></b></div>
-      <button class="logout-btn" id="logoutBtn">Log out</button>
+      <div class="topbar-actions">
+        <button class="share-btn" id="shareBtn">Share</button>
+        <button class="logout-btn" id="logoutBtn">Log out</button>
+      </div>
     </div>
 
     <div class="names-card">
