@@ -1225,6 +1225,15 @@
 <script>
 const $ = id => document.getElementById(id);
 
+function toLocalDateInput(d) {
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+function toLocalTimeInput(d) {
+  const pad = n => String(n).padStart(2, '0');
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 /* ---------------- Storage shim ----------------
    Inside a Claude artifact, window.storage gives real persistent,
    per-account storage. If this file is hosted elsewhere (e.g. GitHub
@@ -1496,11 +1505,11 @@ function enterApp() {
   $('nameB').value = (account.names && account.names.b) || '';
 
   if (startDateTime) {
-    $('startDate').value = startDateTime.toISOString().slice(0,10);
-    $('startTime').value = startDateTime.toISOString().slice(11,16);
+    $('startDate').value = toLocalDateInput(startDateTime);
+    $('startTime').value = toLocalTimeInput(startDateTime);
   } else {
     const now = new Date();
-    $('startDate').value = now.toISOString().slice(0,10);
+    $('startDate').value = toLocalDateInput(now);
     $('startTime').value = '00:00';
   }
 
