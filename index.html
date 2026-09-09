@@ -257,6 +257,8 @@
   }
 
   .avatar img {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -292,6 +294,7 @@
   }
 
   .avatar.filled .avatar-remove { display: flex; }
+  .avatar.filled .avatar-add { display: none; }
 
   .couple-col input {
     font-family: 'Cormorant Garamond', serif;
@@ -997,10 +1000,93 @@
     <div class="status">saved to your account</div>
   </div>
 
+  <!-- ============ CROP MODAL ============ -->
+  <div class="crop-overlay hidden" id="cropOverlay">
+    <div class="crop-modal">
+      <div class="crop-title" id="cropTitle">Adjust photo</div>
+      <div class="crop-hint">Drag to reposition, use the slider to zoom</div>
+      <div class="crop-viewport" id="cropViewport">
+        <img id="cropImage" draggable="false" alt="">
+      </div>
+      <div class="crop-zoom-row">
+        <span>−</span>
+        <input type="range" id="cropZoom" min="100" max="300" value="100">
+        <span>+</span>
+      </div>
+      <div class="crop-actions">
+        <button class="crop-cancel" id="cropCancel">Cancel</button>
+        <button class="crop-save" id="cropSave">Use photo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SHARE CARD ============ -->
+  <div class="share-overlay hidden" id="shareOverlay">
+    <button class="share-close" id="shareClose">×</button>
+    <div class="share-card" id="shareCard">
+      <div class="share-flourish">✦</div>
+      <div class="share-avatars">
+        <div class="share-avatar" id="shareAvatarA">♥</div>
+        <span class="share-heart">♥</span>
+        <div class="share-avatar" id="shareAvatarB">♥</div>
+      </div>
+      <div class="share-names" id="shareNames">—</div>
+      <div class="share-since" id="shareSince"></div>
+      <div class="share-num-row">
+        <div class="share-num-block"><div class="share-num" id="shareYrs">0</div><div class="share-lbl">years</div></div>
+        <div class="share-num-block"><div class="share-num" id="shareMos">0</div><div class="share-lbl">months</div></div>
+        <div class="share-num-block"><div class="share-num" id="shareDys">0</div><div class="share-lbl">days</div></div>
+      </div>
+      <div class="share-photos" id="sharePhotos"></div>
+      <div class="share-tagline">and still counting ♥</div>
+      <div class="share-brand">Us, Since</div>
+    </div>
+    <button class="share-download" id="shareDownload">Save image</button>
+  </div>
+
 </div>
 
 <script>
 const $ = id => document.getElementById(id);
+
+/* ---------------- Storage shim ----------------
+   Inside a Claude artifact, window.storage gives real persistent,
+   per-account storage. If this file is hosted elsewhere (e.g. GitHub
+   Pages) there is no window.storage, so we fall back to the browser's
+   localStorage. That still supports multiple accounts (each account
+   is just its own key), but it only persists on this device/browser —
+   there's no server, so a login made on one device won't be visible
+   on another unless window.storage is available.
+--------------------------------------------------- */
+
+function createLocalStorageShim() {
+  const ns = 'us-since:';
+  return {
+    async get(key) {
+      const raw = localStorage.getItem(ns + key);
+      if (raw === null) throw new Error('Key not found: ' + key);
+      return { key, value: raw };
+    },
+    async set(key, value) {
+      localStorage.setItem(ns + key, value);
+      return { key, value };
+    },
+    async delete(key) {
+      localStorage.removeItem(ns + key);
+      return { key, deleted: true };
+    },
+    async list(prefix) {
+      const keys = Object.keys(localStorage)
+        .filter(k => k.startsWith(ns))
+        .map(k => k.slice(ns.length))
+        .filter(k => !prefix || k.startsWith(prefix));
+      return { keys, prefix };
+    }
+  };
+}
+
+const storage = (window.storage) ? window.storage : createLocalStorageShim();
+const usingLocalFallback = !window.storage;
 
 /* ---------------- Account model ----------------
    Each account is one shared record, keyed by username, containing
@@ -1030,7 +1116,7 @@ function accountKey(username) {
 
 async function loadAccount(username) {
   try {
-    const res = await window.storage.get(accountKey(username), true);
+    const res = await storage.get(accountKey(username), true);
     return res ? JSON.parse(res.value) : null;
   } catch (e) {
     // Key doesn't exist yet — that's expected for a new username, not an error.
@@ -1051,9 +1137,9 @@ async function saveAccount() {
   };
   try {
     if (isGuest) {
-      await window.storage.set(GUEST_KEY, JSON.stringify(account), false);
+      await storage.set(GUEST_KEY, JSON.stringify(account), false);
     } else if (currentUsername) {
-      await window.storage.set(accountKey(currentUsername), JSON.stringify(account), true);
+      await storage.set(accountKey(currentUsername), JSON.stringify(account), true);
     } else {
       return;
     }
@@ -1111,7 +1197,7 @@ $('loginSubmit').addEventListener('click', async () => {
       }
       account = { passwordHash: hash, start: null, events: [], names: { a: '', b: '', avatarA: null, avatarB: null } };
       currentUsername = username;
-      await window.storage.set(accountKey(username), JSON.stringify(account), true);
+      await storage.set(accountKey(username), JSON.stringify(account), true);
       await rememberSession(username);
       enterApp();
     } else {
@@ -1138,13 +1224,13 @@ $('loginSubmit').addEventListener('click', async () => {
 
 async function rememberSession(username) {
   try {
-    await window.storage.set('session-user', username, false);
+    await storage.set('session-user', username, false);
   } catch (e) { /* non-fatal */ }
 }
 
 async function clearSession() {
   try {
-    await window.storage.delete('session-user', false);
+    await storage.delete('session-user', false);
   } catch (e) { /* non-fatal */ }
 }
 
@@ -1152,7 +1238,7 @@ $('guestBtn').addEventListener('click', async () => {
   isGuest = true;
   currentUsername = null;
   try {
-    const res = await window.storage.get(GUEST_KEY, false);
+    const res = await storage.get(GUEST_KEY, false);
     account = res ? JSON.parse(res.value) : null;
   } catch (e) {
     account = null;
@@ -1161,7 +1247,7 @@ $('guestBtn').addEventListener('click', async () => {
     account = { start: null, events: [], names: { a: '', b: '', avatarA: null, avatarB: null } };
   }
   try {
-    await window.storage.set('session-user', '__guest__', false);
+    await storage.set('session-user', '__guest__', false);
   } catch (e) { /* non-fatal */ }
   enterApp();
 });
@@ -1207,10 +1293,10 @@ function enterApp() {
 /* Try auto-login from a remembered session on this device */
 async function tryAutoLogin() {
   try {
-    const s = await window.storage.get('session-user', false);
+    const s = await storage.get('session-user', false);
     if (s && s.value === '__guest__') {
       isGuest = true;
-      const res = await window.storage.get(GUEST_KEY, false).catch(() => null);
+      const res = await storage.get(GUEST_KEY, false).catch(() => null);
       account = res ? JSON.parse(res.value) : { start: null, events: [], names: { a: '', b: '', avatarA: null, avatarB: null } };
       enterApp();
       return;
@@ -1238,6 +1324,121 @@ $('nameA').addEventListener('input', queueSaveNames);
 $('nameB').addEventListener('input', queueSaveNames);
 $('nameA').addEventListener('blur', saveAccount);
 $('nameB').addEventListener('blur', saveAccount);
+
+/* ---------------- Photo cropper ---------------- */
+
+let cropState = null; // { naturalW, naturalH, scale, minScale, x, y, viewportW, viewportH, resolve }
+let cropDrag = null;
+
+function openCropper(file, { aspect = 1, shape = 'rect', title = 'Adjust photo' } = {}) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const viewportW = 260;
+        const viewportH = Math.round(viewportW / aspect);
+        const minScale = Math.max(viewportW / img.naturalWidth, viewportH / img.naturalHeight);
+
+        cropState = {
+          naturalW: img.naturalWidth,
+          naturalH: img.naturalHeight,
+          scale: minScale,
+          minScale,
+          x: (viewportW - img.naturalWidth * minScale) / 2,
+          y: (viewportH - img.naturalHeight * minScale) / 2,
+          viewportW,
+          viewportH,
+          resolve
+        };
+
+        $('cropTitle').textContent = title;
+        const vp = $('cropViewport');
+        vp.style.width = viewportW + 'px';
+        vp.style.height = viewportH + 'px';
+        vp.classList.toggle('circle', shape === 'circle');
+
+        $('cropImage').src = img.src;
+        applyCropTransform();
+        $('cropZoom').value = 100;
+        $('cropOverlay').classList.remove('hidden');
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function applyCropTransform() {
+  if (!cropState) return;
+  $('cropImage').style.transform = `translate(${cropState.x}px, ${cropState.y}px) scale(${cropState.scale})`;
+}
+
+function clampCropPosition() {
+  const { naturalW, naturalH, scale, viewportW, viewportH } = cropState;
+  const scaledW = naturalW * scale;
+  const scaledH = naturalH * scale;
+  cropState.x = Math.min(0, Math.max(viewportW - scaledW, cropState.x));
+  cropState.y = Math.min(0, Math.max(viewportH - scaledH, cropState.y));
+}
+
+function closeCropper(result) {
+  $('cropOverlay').classList.add('hidden');
+  if (cropState) {
+    const resolve = cropState.resolve;
+    cropState = null;
+    resolve(result);
+  }
+}
+
+$('cropViewport').addEventListener('pointerdown', (e) => {
+  if (!cropState) return;
+  cropDrag = { px: e.clientX, py: e.clientY, x: cropState.x, y: cropState.y };
+  e.currentTarget.setPointerCapture(e.pointerId);
+});
+$('cropViewport').addEventListener('pointermove', (e) => {
+  if (!cropDrag || !cropState) return;
+  cropState.x = cropDrag.x + (e.clientX - cropDrag.px);
+  cropState.y = cropDrag.y + (e.clientY - cropDrag.py);
+  clampCropPosition();
+  applyCropTransform();
+});
+$('cropViewport').addEventListener('pointerup', () => { cropDrag = null; });
+$('cropViewport').addEventListener('pointercancel', () => { cropDrag = null; });
+
+$('cropZoom').addEventListener('input', (e) => {
+  if (!cropState) return;
+  const factor = Number(e.target.value) / 100;
+  const { viewportW, viewportH, scale: oldScale, x, y, minScale } = cropState;
+  const newScale = minScale * factor;
+  const cx = viewportW / 2, cy = viewportH / 2;
+  const imgCx = (cx - x) / oldScale, imgCy = (cy - y) / oldScale;
+  cropState.scale = newScale;
+  cropState.x = cx - imgCx * newScale;
+  cropState.y = cy - imgCy * newScale;
+  clampCropPosition();
+  applyCropTransform();
+});
+
+$('cropCancel').addEventListener('click', () => closeCropper(null));
+
+$('cropSave').addEventListener('click', () => {
+  if (!cropState) return;
+  const { scale, x, y, viewportW, viewportH } = cropState;
+  const sourceX = -x / scale;
+  const sourceY = -y / scale;
+  const sourceW = viewportW / scale;
+  const sourceH = viewportH / scale;
+  const outputW = viewportW * 2;
+  const outputH = viewportH * 2;
+  const canvas = document.createElement('canvas');
+  canvas.width = outputW;
+  canvas.height = outputH;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage($('cropImage'), sourceX, sourceY, sourceW, sourceH, 0, 0, outputW, outputH);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.87);
+  closeCropper(dataUrl);
+});
 
 function renderAvatars() {
   const setAvatar = (el, src) => {
@@ -1272,21 +1473,23 @@ $('avatarB').addEventListener('click', (e) => {
 $('avatarInputA').addEventListener('change', async (e) => {
   const file = e.target.files && e.target.files[0];
   if (!file) return;
-  try {
-    avatarA = await resizeImage(file, 300, 0.85);
+  const cropped = await openCropper(file, { aspect: 1, shape: 'circle', title: 'Adjust their picture' });
+  if (cropped) {
+    avatarA = cropped;
     renderAvatars();
     await saveAccount();
-  } catch (err) { console.error('image processing failed', err); }
+  }
   e.target.value = '';
 });
 $('avatarInputB').addEventListener('change', async (e) => {
   const file = e.target.files && e.target.files[0];
   if (!file) return;
-  try {
-    avatarB = await resizeImage(file, 300, 0.85);
+  const cropped = await openCropper(file, { aspect: 1, shape: 'circle', title: 'Adjust their picture' });
+  if (cropped) {
+    avatarB = cropped;
     renderAvatars();
     await saveAccount();
-  } catch (err) { console.error('image processing failed', err); }
+  }
   e.target.value = '';
 });
 $('avatarRemoveA').addEventListener('click', async (e) => {
@@ -1315,10 +1518,7 @@ async function saveStart() {
 $('startDate').addEventListener('change', saveStart);
 $('startTime').addEventListener('change', saveStart);
 
-function updateCounter() {
-  if (!startDateTime) return;
-  $('sinceDate').textContent = startDateTime.toLocaleDateString(undefined, {year:'numeric', month:'long', day:'numeric'});
-
+function computeDuration() {
   const now = new Date();
   let years = now.getFullYear() - startDateTime.getFullYear();
   let months = now.getMonth() - startDateTime.getMonth();
@@ -1338,6 +1538,13 @@ function updateCounter() {
   if (months < 0) { months += 12; years--; }
   if (years < 0) years = months = days = hours = minutes = seconds = 0;
 
+  return { years, months, days, hours, minutes, seconds };
+}
+
+function updateCounter() {
+  if (!startDateTime) return;
+  $('sinceDate').textContent = startDateTime.toLocaleDateString(undefined, {year:'numeric', month:'long', day:'numeric'});
+  const { years, months, days, hours, minutes, seconds } = computeDuration();
   $('yrs').textContent = years;
   $('mos').textContent = months;
   $('dys').textContent = days;
@@ -1346,6 +1553,75 @@ function updateCounter() {
   $('secs').textContent = seconds;
 }
 setInterval(updateCounter, 1000);
+
+/* ---------------- Share card ---------------- */
+
+$('shareBtn').addEventListener('click', () => {
+  const setBg = (el, src) => {
+    if (src) {
+      el.style.backgroundImage = `url(${src})`;
+      el.textContent = '';
+    } else {
+      el.style.backgroundImage = 'none';
+      el.textContent = '♥';
+    }
+  };
+  setBg($('shareAvatarA'), avatarA);
+  setBg($('shareAvatarB'), avatarB);
+
+  const nameA = $('nameA').value.trim() || 'Someone';
+  const nameB = $('nameB').value.trim() || 'Someone';
+  $('shareNames').textContent = `${nameA} ♥ ${nameB}`;
+
+  if (startDateTime) {
+    $('shareSince').textContent = 'together since ' + startDateTime.toLocaleDateString(undefined, {year:'numeric', month:'long', day:'numeric'});
+    const { years, months, days } = computeDuration();
+    $('shareYrs').textContent = years;
+    $('shareMos').textContent = months;
+    $('shareDys').textContent = days;
+  } else {
+    $('shareSince').textContent = '';
+    $('shareYrs').textContent = 0;
+    $('shareMos').textContent = 0;
+    $('shareDys').textContent = 0;
+  }
+
+  const photosEl = $('sharePhotos');
+  photosEl.innerHTML = '';
+  const withPhotos = [...events].filter(ev => ev.photo).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
+  withPhotos.forEach(ev => {
+    const img = document.createElement('img');
+    img.src = ev.photo;
+    img.alt = '';
+    photosEl.appendChild(img);
+  });
+  photosEl.style.display = withPhotos.length ? 'flex' : 'none';
+
+  $('shareOverlay').classList.remove('hidden');
+});
+
+$('shareClose').addEventListener('click', () => {
+  $('shareOverlay').classList.add('hidden');
+});
+
+$('shareDownload').addEventListener('click', async () => {
+  const btn = $('shareDownload');
+  const originalText = btn.textContent;
+  btn.textContent = 'Preparing…';
+  btn.disabled = true;
+  try {
+    const canvas = await html2canvas($('shareCard'), { scale: 3, backgroundColor: null, useCORS: true });
+    const link = document.createElement('a');
+    link.download = 'us-since.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } catch (err) {
+    console.error('share image failed', err);
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+});
 
 /* ---------------- Timeline ---------------- */
 
