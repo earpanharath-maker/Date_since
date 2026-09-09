@@ -517,15 +517,25 @@
     background: var(--line);
   }
 
-  .event { position: relative; padding-bottom: 28px; }
+  .event {
+    position: relative;
+    padding-bottom: 28px;
+    animation: eventFadeIn 0.4s ease both;
+  }
 
-  .event::before {
-    content: "♥";
+  @keyframes eventFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .event .event-icon {
     position: absolute;
-    left: -27px;
-    top: -3px;
-    font-size: 12px;
-    color: var(--rose);
+    left: -30px;
+    top: -4px;
+    font-size: 13px;
+    width: 18px;
+    text-align: center;
+    line-height: 1;
   }
 
   .event .date { font-size: 12px; color: var(--muted); margin-bottom: 3px; }
@@ -545,7 +555,7 @@
 
   .event .event-photo img { width: 100%; display: block; }
 
-  .event .remove {
+  .event .edit, .event .remove {
     background: none;
     border: none;
     color: var(--muted);
@@ -555,9 +565,67 @@
     opacity: 0.55;
   }
 
+  .event .edit:hover { opacity: 1; color: var(--rose-deep); }
   .event .remove:hover { opacity: 1; color: var(--rose-deep); }
 
-  .empty { color: var(--muted); font-size: 14px; font-style: italic; padding: 8px 0; }
+  .empty {
+    color: var(--muted);
+    font-size: 14px;
+    font-style: italic;
+    padding: 18px 0 8px;
+    text-align: center;
+  }
+
+  .empty .empty-flourish {
+    display: block;
+    font-size: 26px;
+    color: var(--line);
+    margin-bottom: 10px;
+    font-style: normal;
+  }
+
+  .anniversary-banner {
+    background: linear-gradient(135deg, #FDECC8, #FBDDD9);
+    border: 1px solid #F0CFA0;
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-size: 13.5px;
+    color: var(--plum);
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .throwback-card {
+    background: var(--card);
+    border: 1px dashed var(--gold);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .throwback-card .tb-photo {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .throwback-card .tb-text .tb-label-top {
+    font-size: 10.5px;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 2px;
+  }
+
+  .throwback-card .tb-text .tb-body {
+    font-size: 13.5px;
+    color: var(--plum);
+  }
 
   .new-event {
     display: none;
@@ -568,6 +636,35 @@
   }
 
   .new-event.open { display: flex; }
+
+  .ev-type-select {
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--plum);
+    border-radius: 10px;
+    padding: 9px 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    width: 100%;
+  }
+
+  .new-event-actions {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .cancel-edit-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    border-radius: 10px;
+    padding: 9px 15px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+  .cancel-edit-btn:hover { border-color: var(--rose); color: var(--rose-deep); }
 
   .new-event input[type="text"] { flex: 1; min-width: 140px; }
 
@@ -849,6 +946,29 @@
     cursor: pointer;
   }
 
+  .share-format-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .share-format-btn {
+    background: rgba(255,255,255,0.7);
+    border: 1px solid var(--line);
+    color: var(--muted);
+    border-radius: 16px;
+    padding: 6px 15px;
+    font-size: 12.5px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .share-format-btn.active {
+    background: var(--rose-deep);
+    border-color: var(--rose-deep);
+    color: #FFF8F5;
+  }
+
   .share-card {
     width: 320px;
     padding: 40px 26px 32px;
@@ -859,6 +979,76 @@
     position: relative;
     overflow: hidden;
   }
+
+  .share-card.square {
+    width: 320px;
+    aspect-ratio: 1;
+    padding: 26px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .share-card.square .share-title { margin-bottom: 12px; }
+  .share-card.square .share-avatars { margin-bottom: 12px; }
+  .share-card.square .share-num-row { margin-bottom: 12px; }
+  .share-card.square .share-photos { margin-bottom: 10px; }
+  .share-card.square .share-tagline { margin-bottom: 10px; }
+
+  .share-photo-picker {
+    width: 320px;
+    max-width: 100%;
+    margin-top: 18px;
+  }
+
+  .share-picker-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.85);
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .share-picker-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .share-picker-thumb {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    opacity: 0.6;
+  }
+
+  .share-picker-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .share-picker-thumb.selected {
+    border-color: var(--gold);
+    opacity: 1;
+  }
+
+  .share-picker-thumb .check {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: #fff;
+    font-size: 10px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .share-picker-thumb.selected .check { display: flex; }
 
   .share-title {
     font-family: 'Cormorant Garamond', serif;
@@ -1042,6 +1232,8 @@
 
     .crop-modal { padding: 18px; }
     .share-card { width: 100%; max-width: 300px; padding: 32px 18px 26px; }
+    .share-card.square { width: 100%; max-width: 300px; padding: 22px 18px; }
+    .share-photo-picker { max-width: 300px; }
     .share-num-row { gap: 14px; }
     .share-num-block .share-num { font-size: 34px; }
   }
@@ -1155,6 +1347,17 @@
     </div>
 
     <div class="new-event" id="newEvent">
+      <select id="evType" class="ev-type-select">
+        <option value="milestone">♥ Milestone</option>
+        <option value="firstdate">💌 First date</option>
+        <option value="movedin">🏡 Moved in together</option>
+        <option value="engaged">💍 Engaged</option>
+        <option value="married">💒 Married</option>
+        <option value="trip">✈️ Trip</option>
+        <option value="birthday">🎂 Birthday</option>
+        <option value="anniversary">✨ Anniversary</option>
+        <option value="other">⭐ Other</option>
+      </select>
       <input type="date" id="evDate">
       <input type="text" id="evLabel" placeholder="What happened? (optional)">
       <div class="photo-picker">
@@ -1165,8 +1368,14 @@
           <button type="button" class="remove-preview" id="removePreview">×</button>
         </div>
       </div>
-      <button class="save-btn" id="saveEvent">Save</button>
+      <div class="new-event-actions">
+        <button class="save-btn" id="saveEvent">Save</button>
+        <button class="cancel-edit-btn hidden" id="cancelEdit">Cancel edit</button>
+      </div>
     </div>
+
+    <div class="anniversary-banner hidden" id="anniversaryBanner"></div>
+    <div class="throwback-card hidden" id="throwbackCard"></div>
 
     <div class="timeline" id="timeline"></div>
 
@@ -1196,6 +1405,12 @@
   <!-- ============ SHARE CARD ============ -->
   <div class="share-overlay hidden" id="shareOverlay">
     <button class="share-close" id="shareClose">×</button>
+
+    <div class="share-format-row">
+      <button class="share-format-btn active" id="formatPortrait" data-format="portrait">Portrait</button>
+      <button class="share-format-btn" id="formatSquare" data-format="square">Square</button>
+    </div>
+
     <div class="share-card" id="shareCard">
       <div class="share-rain" id="shareRain"></div>
       <div class="share-content">
@@ -1217,6 +1432,12 @@
         <div class="share-brand">Us, Since</div>
       </div>
     </div>
+
+    <div class="share-photo-picker" id="sharePhotoPicker">
+      <div class="share-picker-label">Choose up to 3 pictures</div>
+      <div class="share-picker-grid" id="sharePickerGrid"></div>
+    </div>
+
     <button class="share-download" id="shareDownload">Save image</button>
   </div>
 
@@ -1660,14 +1881,18 @@ $('cropSave').addEventListener('click', () => {
   const sourceY = -y / scale;
   const sourceW = viewportW / scale;
   const sourceH = viewportH / scale;
-  const outputW = viewportW * 2;
-  const outputH = viewportH * 2;
+  // Export at a higher multiplier for crisper photos (capped so file size stays reasonable).
+  const outputMultiplier = Math.min(3, Math.max(2, window.devicePixelRatio || 2));
+  const outputW = Math.round(viewportW * outputMultiplier);
+  const outputH = Math.round(viewportH * outputMultiplier);
   const canvas = document.createElement('canvas');
   canvas.width = outputW;
   canvas.height = outputH;
   const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
   ctx.drawImage($('cropImage'), sourceX, sourceY, sourceW, sourceH, 0, 0, outputW, outputH);
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.87);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
   closeCropper(dataUrl);
 });
 
@@ -1787,6 +2012,62 @@ setInterval(updateCounter, 1000);
 
 /* ---------------- Share card ---------------- */
 
+let selectedSharePhotoIds = [];
+let shareFormat = 'portrait';
+
+function renderSharePhotos() {
+  const withPhotoEvents = [...events].filter(ev => ev.photo).sort((a, b) => b.date.localeCompare(a.date));
+
+  if (selectedSharePhotoIds.length === 0 && withPhotoEvents.length) {
+    selectedSharePhotoIds = withPhotoEvents.slice(0, 3).map(ev => ev.id);
+  }
+
+  const photosEl = $('sharePhotos');
+  photosEl.innerHTML = '';
+  const chosen = withPhotoEvents.filter(ev => selectedSharePhotoIds.includes(ev.id));
+  chosen.forEach(ev => {
+    const img = document.createElement('img');
+    img.src = ev.photo;
+    img.alt = '';
+    photosEl.appendChild(img);
+  });
+  photosEl.style.display = chosen.length ? 'flex' : 'none';
+
+  const pickerSection = $('sharePhotoPicker');
+  const grid = $('sharePickerGrid');
+  grid.innerHTML = '';
+  if (withPhotoEvents.length === 0) {
+    pickerSection.classList.add('hidden');
+    return;
+  }
+  pickerSection.classList.remove('hidden');
+  withPhotoEvents.forEach(ev => {
+    const thumb = document.createElement('div');
+    thumb.className = 'share-picker-thumb' + (selectedSharePhotoIds.includes(ev.id) ? ' selected' : '');
+    thumb.innerHTML = `<img src="${ev.photo}" alt=""><span class="check">✓</span>`;
+    thumb.addEventListener('click', () => {
+      const idx = selectedSharePhotoIds.indexOf(ev.id);
+      if (idx >= 0) {
+        selectedSharePhotoIds.splice(idx, 1);
+      } else if (selectedSharePhotoIds.length < 3) {
+        selectedSharePhotoIds.push(ev.id);
+      }
+      renderSharePhotos();
+    });
+    grid.appendChild(thumb);
+  });
+}
+
+function setShareFormat(format) {
+  shareFormat = format;
+  $('shareCard').classList.toggle('square', format === 'square');
+  $('formatPortrait').classList.toggle('active', format === 'portrait');
+  $('formatSquare').classList.toggle('active', format === 'square');
+}
+
+$('formatPortrait').addEventListener('click', () => setShareFormat('portrait'));
+$('formatSquare').addEventListener('click', () => setShareFormat('square'));
+
 $('shareBtn').addEventListener('click', () => {
   const setBg = (el, src) => {
     if (src) {
@@ -1817,16 +2098,9 @@ $('shareBtn').addEventListener('click', () => {
     $('shareDys').textContent = 0;
   }
 
-  const photosEl = $('sharePhotos');
-  photosEl.innerHTML = '';
-  const withPhotos = [...events].filter(ev => ev.photo).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
-  withPhotos.forEach(ev => {
-    const img = document.createElement('img');
-    img.src = ev.photo;
-    img.alt = '';
-    photosEl.appendChild(img);
-  });
-  photosEl.style.display = withPhotos.length ? 'flex' : 'none';
+  selectedSharePhotoIds = [];
+  renderSharePhotos();
+  setShareFormat('portrait');
 
   buildRain($('shareRain'), rainSetting, 14);
 
@@ -1858,11 +2132,17 @@ $('shareDownload').addEventListener('click', async () => {
 
 /* ---------------- Timeline ---------------- */
 
+const EVENT_ICONS = {
+  milestone: '♥', firstdate: '💌', movedin: '🏡', engaged: '💍',
+  married: '💒', trip: '✈️', birthday: '🎂', anniversary: '✨', other: '⭐'
+};
+
 function renderTimeline() {
   const el = $('timeline');
   el.innerHTML = '';
   if (events.length === 0) {
-    el.innerHTML = '<div class="empty">No moments added yet.</div>';
+    el.innerHTML = '<div class="empty"><span class="empty-flourish">♥ ‧ ♥ ‧ ♥</span>No moments added yet.</div>';
+    renderAnniversaryAndThrowback();
     return;
   }
   const sorted = [...events].sort((a,b) => a.date.localeCompare(b.date));
@@ -1873,10 +2153,13 @@ function renderTimeline() {
     const dateStr = dateObj.toLocaleDateString(undefined, {year:'numeric', month:'long', day:'numeric'});
     const labelHtml = ev.label ? `<div class="label">${escapeHtml(ev.label)}</div>` : '<div class="label"></div>';
     const photoHtml = ev.photo ? `<div class="event-photo"><img src="${ev.photo}" alt=""></div>` : '';
+    const icon = EVENT_ICONS[ev.type] || EVENT_ICONS.milestone;
     div.innerHTML = `
+      <div class="event-icon">${icon}</div>
       <div class="date">${dateStr}</div>
       <div class="label-row">
         ${labelHtml}
+        <button class="edit" data-id="${ev.id}">edit</button>
         <button class="remove" data-id="${ev.id}">remove</button>
       </div>
       ${photoHtml}
@@ -1886,10 +2169,97 @@ function renderTimeline() {
   el.querySelectorAll('.remove').forEach(btn => {
     btn.addEventListener('click', async () => {
       events = events.filter(ev => ev.id !== btn.dataset.id);
+      if (editingId === btn.dataset.id) cancelEventEdit();
       await saveAccount();
       renderTimeline();
     });
   });
+  el.querySelectorAll('.edit').forEach(btn => {
+    btn.addEventListener('click', () => startEventEdit(btn.dataset.id));
+  });
+  renderAnniversaryAndThrowback();
+}
+
+function renderAnniversaryAndThrowback() {
+  const today = new Date();
+  const todayM = today.getMonth(), todayD = today.getDate();
+
+  const anniversaries = events.filter(ev => {
+    const d = new Date(ev.date + 'T00:00:00');
+    return d.getMonth() === todayM && d.getDate() === todayD && d.getFullYear() !== today.getFullYear();
+  }).map(ev => {
+    const d = new Date(ev.date + 'T00:00:00');
+    const years = today.getFullYear() - d.getFullYear();
+    return { years, label: ev.label || 'a moment' };
+  }).filter(a => a.years > 0);
+
+  const bannerEl = $('anniversaryBanner');
+  if (anniversaries.length) {
+    const text = anniversaries.map(a => `${a.years} year${a.years === 1 ? '' : 's'} ago today: ${escapeHtml(a.label)}`).join(' · ');
+    bannerEl.innerHTML = `🎉 ${text}`;
+    bannerEl.classList.remove('hidden');
+  } else {
+    bannerEl.classList.add('hidden');
+    bannerEl.innerHTML = '';
+  }
+
+  const tbEl = $('throwbackCard');
+  if (events.length > 0) {
+    const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
+    const idx = dayOfYear % events.length;
+    const ev = events[idx];
+    const d = new Date(ev.date + 'T00:00:00');
+    const dateStr = d.toLocaleDateString(undefined, {year:'numeric', month:'long', day:'numeric'});
+    const photoHtml = ev.photo ? `<img class="tb-photo" src="${ev.photo}" alt="">` : '';
+    tbEl.innerHTML = `
+      ${photoHtml}
+      <div class="tb-text">
+        <div class="tb-label-top">On this day</div>
+        <div class="tb-body">${dateStr}${ev.label ? ' — ' + escapeHtml(ev.label) : ''}</div>
+      </div>
+    `;
+    tbEl.classList.remove('hidden');
+  } else {
+    tbEl.classList.add('hidden');
+    tbEl.innerHTML = '';
+  }
+}
+
+let editingId = null;
+
+function startEventEdit(id) {
+  const ev = events.find(e => e.id === id);
+  if (!ev) return;
+  editingId = id;
+  $('evDate').value = ev.date;
+  $('evLabel').value = ev.label || '';
+  $('evType').value = ev.type || 'milestone';
+  pendingPhoto = ev.photo || null;
+  if (pendingPhoto) {
+    $('photoPreview').src = pendingPhoto;
+    $('photoPreviewWrap').style.display = 'block';
+    $('photoPickBtn').style.display = 'none';
+  } else {
+    $('photoPreviewWrap').style.display = 'none';
+    $('photoPickBtn').style.display = 'inline-block';
+  }
+  $('saveEvent').textContent = 'Update';
+  $('cancelEdit').classList.remove('hidden');
+  $('newEvent').classList.add('open');
+  $('newEvent').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function cancelEventEdit() {
+  editingId = null;
+  $('evDate').value = '';
+  $('evLabel').value = '';
+  $('evType').value = 'milestone';
+  pendingPhoto = null;
+  $('photoPreviewWrap').style.display = 'none';
+  $('photoPickBtn').style.display = 'inline-block';
+  $('saveEvent').textContent = 'Save';
+  $('cancelEdit').classList.add('hidden');
+  $('newEvent').classList.remove('open');
 }
 
 function escapeHtml(str) {
@@ -1898,7 +2268,7 @@ function escapeHtml(str) {
   return d.innerHTML;
 }
 
-function resizeImage(file, maxSize = 700, quality = 0.8) {
+function resizeImage(file, maxSize = 1200, quality = 0.9) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
@@ -1915,7 +2285,9 @@ function resizeImage(file, maxSize = 700, quality = 0.8) {
         const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
-        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, width, height);
         resolve(canvas.toDataURL('image/jpeg', quality));
       };
       img.onerror = reject;
@@ -1927,20 +2299,25 @@ function resizeImage(file, maxSize = 700, quality = 0.8) {
 }
 
 $('toggleAdd').addEventListener('click', () => {
+  const willOpen = !$('newEvent').classList.contains('open');
   $('newEvent').classList.toggle('open');
+  if (!willOpen) cancelEventEdit();
 });
+
+$('cancelEdit').addEventListener('click', cancelEventEdit);
 
 $('photoPickBtn').addEventListener('click', () => $('evPhotoInput').click());
 
 $('evPhotoInput').addEventListener('change', async (e) => {
   const file = e.target.files && e.target.files[0];
   if (!file) return;
-  try {
-    pendingPhoto = await resizeImage(file);
+  const cropped = await openCropper(file, { aspect: 4/3, shape: 'rect', title: 'Adjust your picture' });
+  if (cropped) {
+    pendingPhoto = cropped;
     $('photoPreview').src = pendingPhoto;
     $('photoPreviewWrap').style.display = 'block';
     $('photoPickBtn').style.display = 'none';
-  } catch (err) { console.error('image processing failed', err); }
+  }
   e.target.value = '';
 });
 
@@ -1953,21 +2330,30 @@ $('removePreview').addEventListener('click', () => {
 $('saveEvent').addEventListener('click', async () => {
   const d = $('evDate').value;
   const l = $('evLabel').value.trim();
+  const type = $('evType').value;
   if (!d || (!l && !pendingPhoto)) return;
-  events.push({
-    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
-    date: d,
-    label: l,
-    photo: pendingPhoto
-  });
+
+  if (editingId) {
+    const ev = events.find(e => e.id === editingId);
+    if (ev) {
+      ev.date = d;
+      ev.label = l;
+      ev.type = type;
+      ev.photo = pendingPhoto;
+    }
+  } else {
+    events.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+      date: d,
+      label: l,
+      type: type,
+      photo: pendingPhoto
+    });
+  }
+
   await saveAccount();
   renderTimeline();
-  $('evDate').value = '';
-  $('evLabel').value = '';
-  pendingPhoto = null;
-  $('photoPreviewWrap').style.display = 'none';
-  $('photoPickBtn').style.display = 'inline-block';
-  $('newEvent').classList.remove('open');
+  cancelEventEdit();
 });
 
 tryAutoLogin();
